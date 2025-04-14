@@ -65,17 +65,6 @@ src/
 - **Low Coupling**: Interactions between components are minimized through well-defined interfaces
 - **High Cohesion**: Classes have clearly defined, focused responsibilities
 
-## How to Compile and Run
-
-To compile and run the project:
-
-```bash
-# Compile
-javac -d bin -cp src src/component/*.java src/process/*.java src/system/*.java src/Main.java
-
-# Run
-java -cp bin Main
-```
 
 ## Manufacturing Process
 
