@@ -12,8 +12,9 @@ public class WaitingForStockState implements ProcessState {
         
         // Check if we have sufficient stock
         if (product.checkStockAvailability(inventory, 1)) {
-            // Deduct stock for all components
-            product.deductStock(inventory, 1);
+            // Only check stock availability without deducting it here
+            // Stock will be deducted only if manufacturing is successful
+            
             // Transition to InManufacturing state
             context.setState(new InManufacturingState());
         } else {

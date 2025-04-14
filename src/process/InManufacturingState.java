@@ -17,8 +17,12 @@ public class InManufacturingState implements ProcessState {
         
         switch (outcome) {
             case 1: // Successful manufacturing
+                // Deduct stock for all components only when manufacturing is successful
+                product.deductStock(inventory, 1);
+                
                 // Add the manufactured product to inventory
                 product.addStock(inventory, 1);
+                
                 // Transition to Completed state
                 context.setState(new CompletedState());
                 context.recordResult(ManufacturingOutcome.COMPLETED);
