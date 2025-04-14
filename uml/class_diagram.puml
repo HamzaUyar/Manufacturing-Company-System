@@ -1,0 +1,194 @@
+@startuml Manufacturing System Class Diagram
+
+' Style and theme configuration
+!theme plain
+skinparam linetype ortho
+skinparam classFontSize 14
+skinparam classFontName Arial
+skinparam classBackgroundColor #F0F8FF
+skinparam classArrowColor #2F4F4F
+skinparam classBorderColor #008B8B
+
+' Title
+title Manufacturing Company System - Class Diagram
+
+' Packages
+package "component" {
+  ' Component interface (Composite Pattern)
+  interface Component {
+    +getCost(): double
+    +getWeight(): double
+    +getName(): String
+    +checkStockAvailability(inventory: InventoryManager, quantity: int): boolean
+    +deductStock(inventory: InventoryManager, quantity: int): void
+    +addStock(inventory: InventoryManager, quantity: int): void
+    +getRequiredComponents(): Map<Component, Double>
+  }
+  
+  abstract class BasicComponent {
+    #name: String
+    #unitCost: double
+    #unitWeight: double
+    +BasicComponent(name: String, unitCost: double, unitWeight: double)
+    +getCost(): double
+    +getWeight(): double
+    +getName(): String
+    +getRequiredComponents(): Map<Component, Double>
+    +checkStockAvailability(inventory: InventoryManager, quantity: int): boolean
+    +deductStock(inventory: InventoryManager, quantity: int): void
+    +addStock(inventory: InventoryManager, quantity: int): void
+  }
+  
+  class RawMaterial {
+    +RawMaterial(name: String, unitCost: double, unitWeight: double)
+  }
+  
+  class Hardware {
+    +Hardware(name: String, unitCost: double, unitWeight: double)
+  }
+  
+  class Paint {
+    +Paint(name: String, unitCost: double, unitWeight: double)
+  }
+  
+  class Product {
+    -name: String
+    -requiredComponents: Map<Component, Double>
+    +Product(name: String)
+    +addComponent(component: Component, quantity: double): void
+    +getCost(): double
+    +getWeight(): double
+    +getName(): String
+    +getRequiredComponents(): Map<Component, Double>
+    +checkStockAvailability(inventory: InventoryManager, quantity: int): boolean
+    +deductStock(inventory: InventoryManager, quantity: int): void
+    +addStock(inventory: InventoryManager, quantity: int): void
+  }
+}
+
+package "process" {
+  ' State Pattern
+  interface ProcessState {
+    +handleProcess(context: ManufacturingProcess): void
+    +isTerminal(): boolean
+  }
+  
+  class WaitingForStockState {
+    +handleProcess(context: ManufacturingProcess): void
+    +isTerminal(): boolean
+  }
+  
+  class InManufacturingState {
+    -random: Random
+    +handleProcess(context: ManufacturingProcess): void
+    +isTerminal(): boolean
+  }
+  
+  class CompletedState {
+    +handleProcess(context: ManufacturingProcess): void
+    +isTerminal(): boolean
+  }
+  
+  class FailedState {
+    +handleProcess(context: ManufacturingProcess): void
+    +isTerminal(): boolean
+  }
+  
+  enum ManufacturingOutcome {
+    COMPLETED
+    FAILED_STOCK_SHORTAGE
+    FAILED_SYSTEM_ERROR
+    FAILED_DAMAGED_COMPONENT
+  }
+  
+  class ManufacturingProcess {
+    -product: Product
+    -inventoryManager: InventoryManager
+    -currentState: ProcessState
+    -finalOutcome: ManufacturingOutcome
+    +ManufacturingProcess(product: Product, inventoryManager: InventoryManager)
+    +setState(newState: ProcessState): void
+    +getProduct(): Product
+    +getInventoryManager(): InventoryManager
+    +getCurrentState(): ProcessState
+    +recordResult(outcome: ManufacturingOutcome): void
+    +getFinalOutcome(): ManufacturingOutcome
+    +process(): void
+    +isCompleted(): boolean
+  }
+}
+
+package "system" {
+  class InventoryManager {
+    -stockLevels: Map<Component, Integer>
+    +InventoryManager()
+    +setInitialStock(component: Component, quantity: int): void
+    +checkStock(component: Component, quantity: int): boolean
+    +deductStock(component: Component, quantity: int): boolean
+    +addStock(component: Component, quantity: int): void
+    +getStockLevel(component: Component): int
+  }
+  
+  class ManufacturingOrder {
+    -product: Product
+    -quantity: int
+    +ManufacturingOrder(product: Product, quantity: int)
+    +getProduct(): Product
+    +getQuantity(): int
+  }
+  
+  class DataLoader {
+    -basicComponentsMap: Map<String, Component>
+    -loadBasicComponents(csvPath: String, inventory: InventoryManager): void
+    -loadManufacturingOrders(csvPath: String): List<ManufacturingOrder>
+    +loadDataAndInitialize(componentsCsvPath: String, productsCsvPath: String, inventoryManager: InventoryManager): List<ManufacturingOrder>
+  }
+  
+  class ReportGenerator {
+    +generateReport(completedProcesses: List<ManufacturingProcess>): void
+  }
+  
+  class ManufacturingSystem {
+    -inventoryManager: InventoryManager
+    -dataLoader: DataLoader
+    -reportGenerator: ReportGenerator
+    -componentsFilePath: String
+    -productsFilePath: String
+    +ManufacturingSystem(componentsFilePath: String, productsFilePath: String)
+    +run(): void
+  }
+}
+
+class Main {
+  +{static} main(args: String[]): void
+}
+
+' Relationships (Inheritance)
+Component <|.. BasicComponent
+BasicComponent <|-- RawMaterial
+BasicComponent <|-- Paint
+BasicComponent <|-- Hardware
+Component <|.. Product
+
+ProcessState <|.. WaitingForStockState
+ProcessState <|.. InManufacturingState
+ProcessState <|.. CompletedState
+ProcessState <|.. FailedState
+
+' Associations
+Product "1" *-- "0..*" Component : contains >
+ManufacturingProcess "1" o-- "1" ProcessState : currentState >
+ManufacturingProcess "1" o-- "1" Product : manufactures >
+ManufacturingProcess "1" o-- "1" InventoryManager : uses >
+ManufacturingProcess "1" o-- "1" ManufacturingOutcome : records >
+ManufacturingOrder "1" o-- "1" Product : references >
+DataLoader ..> ManufacturingOrder : creates >
+DataLoader ..> Component : creates >
+ManufacturingSystem "1" *-- "1" InventoryManager : manages >
+ManufacturingSystem "1" *-- "1" DataLoader : uses >
+ManufacturingSystem "1" *-- "1" ReportGenerator : uses >
+ManufacturingSystem ..> ManufacturingProcess : creates >
+Main ..> ManufacturingSystem : uses >
+ReportGenerator ..> ManufacturingProcess : analyzes >
+
+@enduml 
