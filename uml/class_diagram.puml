@@ -40,17 +40,32 @@ package "component" {
     #name: String
     #unitCost: double
     #unitWeight: double
+    +getCost()
+    +getWeight()
+    +getName()
   }
   
-  class RawMaterial
-  class Hardware
-  class Paint
+  class RawMaterial {
+    +RawMaterial()
+  }
+  
+  class Hardware {
+    +Hardware()
+  }
+  
+  class Paint {
+    +Paint()
+  }
   
   class Product {
     -name: String
     -requiredComponents: Map
+    +Product()
     +addComponent()
     -hasCircularDependency()
+    +getCost()
+    +getWeight()
+    +deductStock()
   }
   
   package "factory" {
@@ -68,10 +83,30 @@ package "process" {
     +getStateContext()
   }
   
-  class WaitingForStockState
-  class InManufacturingState
-  class CompletedState
-  class FailedState
+  class WaitingForStockState {
+    +handleProcess()
+    +isTerminal()
+    +getStateContext()
+  }
+  
+  class InManufacturingState {
+    -random: Random
+    +handleProcess()
+    +isTerminal()
+    +getStateContext()
+  }
+  
+  class CompletedState {
+    +handleProcess()
+    +isTerminal()
+    +getStateContext()
+  }
+  
+  class FailedState {
+    +handleProcess()
+    +isTerminal()
+    +getStateContext()
+  }
   
   enum ManufacturingOutcome {
     COMPLETED
@@ -82,15 +117,18 @@ package "process" {
   
   class ManufacturingProcess {
     -product: Product
-    -inventoryManager
+    -inventoryManager: InventoryManager
     -currentState: ProcessState
-    -finalOutcome
-    -observers: List
+    -finalOutcome: ManufacturingOutcome
+    -observers: List<ProcessObserver>
+    +ManufacturingProcess()
     +addObserver()
     +removeObserver()
     +setState()
     +process()
     +isCompleted()
+    +recordResult()
+    +getFinalOutcome()
   }
 }
 
@@ -100,25 +138,33 @@ package "observer" {
     +onProcessCompleted()
   }
   
-  class ConsoleLogger
+  class ConsoleLogger {
+    +onStateChange()
+    +onProcessCompleted()
+  }
 }
 
 package "system" {
   class InventoryManager {
-    -stockLevels: Map
+    -stockLevels: Map<Component, Integer>
     +setInitialStock()
     +checkStock()
     +deductStock()
     +addStock()
+    +getStockLevel()
   }
   
   class ManufacturingOrder {
     -product: Product
     -quantity: int
+    +getProduct()
+    +getQuantity()
   }
   
   class DataLoader {
-    -basicComponentsMap: Map
+    -basicComponentsMap: Map<String, Component>
+    -loadBasicComponents()
+    -loadManufacturingOrders()
     +loadDataAndInitialize()
   }
   
@@ -127,18 +173,22 @@ package "system" {
   }
   
   class ManufacturingSystem {
-    -componentsFilePath
-    -productsFilePath
-    -controller
+    -componentsFilePath: String
+    -productsFilePath: String
+    -controller: ManufacturingController
+    +ManufacturingSystem()
     +run()
   }
   
   class ManufacturingController {
-    -dataLoader
-    -inventoryManager
-    -reportGenerator
-    -consoleLogger
+    -dataLoader: DataLoader
+    -inventoryManager: InventoryManager
+    -reportGenerator: ReportGenerator
+    +ManufacturingController()
     +processManufacturingOrders()
+    -processOrders()
+    -createManufacturingProcess()
+    -completeManufacturingProcess()
   }
 }
 
@@ -175,8 +225,9 @@ ManufacturingSystem "1" *-- "1" ManufacturingController : delegates to >
 ManufacturingController "1" *-- "1" InventoryManager : manages >
 ManufacturingController "1" *-- "1" DataLoader : uses >
 ManufacturingController "1" *-- "1" ReportGenerator : uses >
-ManufacturingController "1" *-- "1" ConsoleLogger : uses >
 ManufacturingController ..> ManufacturingProcess : creates >
+ManufacturingProcess ..> ManufacturingOutcome : uses >
+InventoryManager o-- "0..*" Component : manages >
 Main ..> ManufacturingSystem : uses >
 
 @enduml 
