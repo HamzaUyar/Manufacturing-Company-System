@@ -13,8 +13,45 @@ public class Product implements Component {
         this.requiredComponents = new HashMap<>();
     }
     
+    /**
+     * Adds a component (can be a basic component or another product) with the specified quantity.
+     * This allows for recursive composition of products.
+     */
     public void addComponent(Component component, double quantity) {
+        if (component == this) {
+            throw new IllegalArgumentException("A product cannot contain itself as a component");
+        }
+        
+        // Check for circular references if the component is a product
+        if (component instanceof Product) {
+            Product productComponent = (Product) component;
+            if (hasCircularDependency(productComponent)) {
+                throw new IllegalArgumentException("Circular dependency detected between products");
+            }
+        }
+        
         requiredComponents.put(component, quantity);
+    }
+    
+    /**
+     * Checks if adding the given product would create a circular dependency
+     */
+    private boolean hasCircularDependency(Product product) {
+        // Check if any of the product's direct components references this product
+        for (Component component : product.getRequiredComponents().keySet()) {
+            if (component == this) {
+                return true;
+            }
+            
+            // Recursively check if any sub-product references this product
+            if (component instanceof Product) {
+                if (hasCircularDependency((Product) component)) {
+                    return true;
+                }
+            }
+        }
+        
+        return false;
     }
     
     @Override
@@ -69,6 +106,11 @@ public class Product implements Component {
     @Override
     public void addStock(InventoryManager inventory, int quantity) {
         inventory.addStock(this, quantity);
+    }
+    
+    @Override
+    public String toString() {
+        return "Product: " + name;
     }
     
     @Override

@@ -28,4 +28,9 @@ public class WaitingForStockState implements ProcessState {
     public boolean isTerminal() {
         return false;
     }
+    
+    @Override
+    public String getStateContext() {
+        return "Checking inventory for required components";
+    }
 } 

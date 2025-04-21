@@ -46,4 +46,9 @@ public class InManufacturingState implements ProcessState {
     public boolean isTerminal() {
         return false;
     }
+    
+    @Override
+    public String getStateContext() {
+        return "Currently manufacturing the product, deducting components from inventory if successful";
+    }
 }
