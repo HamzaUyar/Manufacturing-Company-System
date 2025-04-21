@@ -50,9 +50,12 @@ public class ConsoleLogger implements ProcessObserver {
     @Override
     public void onProcessCompleted(ManufacturingProcess process) {
         String productName = process.getProduct().getName();
-        String outcome = process.getFinalOutcome().toString();
+        ManufacturingOutcome outcome = process.getFinalOutcome();
+        
+        // Check if outcome is null to avoid NullPointerException
+        String outcomeStr = outcome != null ? outcome.toString() : "UNKNOWN";
         
         System.out.printf("Process for '%s' completed with outcome: %s\n\n", 
-                productName, outcome);
+                productName, outcomeStr);
     }
 } 

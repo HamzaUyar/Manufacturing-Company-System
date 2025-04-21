@@ -6,8 +6,6 @@ import process.ManufacturingProcess;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.ArrayList;
-import java.util.Collections;
 
 public class ReportGenerator {
     
@@ -16,30 +14,18 @@ public class ReportGenerator {
         int stockShortageCount = 0;
         int systemErrorCount = 0;
         int damagedComponentCount = 0;
-        
-        Map<String, Integer> productSuccessCount = new HashMap<>();
-        Map<String, Double> productTotalCost = new HashMap<>();
-        Map<String, Double> productTotalWeight = new HashMap<>();
+        double totalCost = 0.0;
+        double totalWeight = 0.0;
         
         for (ManufacturingProcess process : completedProcesses) {
             Product product = process.getProduct();
-            String productName = product.getName();
             ManufacturingOutcome outcome = process.getFinalOutcome();
             
             switch (outcome) {
                 case COMPLETED:
                     successCount++;
-                    
-                    // Track successful products for detailed reporting
-                    productSuccessCount.put(productName, 
-                                          productSuccessCount.getOrDefault(productName, 0) + 1);
-                    
-                    // Add cost and weight to totals
-                    productTotalCost.put(productName, 
-                                       productTotalCost.getOrDefault(productName, 0.0) + product.getCost());
-                    
-                    productTotalWeight.put(productName, 
-                                         productTotalWeight.getOrDefault(productName, 0.0) + product.getWeight());
+                    totalCost += product.getCost();
+                    totalWeight += product.getWeight();
                     break;
                     
                 case FAILED_STOCK_SHORTAGE:
@@ -56,36 +42,30 @@ public class ReportGenerator {
             }
         }
         
-        int totalProcesses = completedProcesses.size();
-        double successRate = (double) successCount / totalProcesses * 100;
+        // Print a more visually appealing report
+        String border = "+---------------------------------------------------------------------------+";
+        String titleBorder = "+===========================================================================+";
         
-        // Prepare sorted list of products for consistent ordering
-        List<String> sortedProductNames = new ArrayList<>(productSuccessCount.keySet());
-        Collections.sort(sortedProductNames);
+        System.out.println("\n" + titleBorder);
+        System.out.println("|                      MANUFACTURING SYSTEM REPORT                        |");
+        System.out.println(titleBorder);
         
-        // Calculate grand totals
-        double grandTotalCost = 0.0;
-        double grandTotalWeight = 0.0;
-        for (String product : productSuccessCount.keySet()) {
-            grandTotalCost += productTotalCost.get(product);
-            grandTotalWeight += productTotalWeight.get(product);
-        }
+        // Success section
+        System.out.println("|                                                                         |");
+        System.out.println("| 1. SUCCESSFULLY MANUFACTURED PRODUCTS                                   |");
+        System.out.println("|    ----------------------------------------                             |");
+        System.out.printf("| ▶ Successfully manufactured products: %-36d |\n", successCount);
+        System.out.printf("| ▶ Total cost: %-52s |\n", String.format("%.2f", totalCost).replace(".", ",") + " TL");
+        System.out.printf("| ▶ Total weight: %-50s |\n", String.format("%.2f", totalWeight).replace(".", ",") + " kg");
         
-        // Print the end-of-run report
-        System.out.println("\n===== END-OF-RUN MANUFACTURING REPORT =====\n");
-        
-        // 1. Successfully manufactured products
-        System.out.println("1. SUCCESSFULLY MANUFACTURED PRODUCTS");
-        System.out.println("   Successfully manufactured products: " + successCount);
-        System.out.println("   Total cost: " + String.format("%.2f", grandTotalCost).replace(".", ",") + " TL");
-        System.out.println("   Total weight: " + String.format("%.2f", grandTotalWeight).replace(".", ",") + " kg");
-        
-        // 2. Failed products by category
-        System.out.println("\n2. FAILED PRODUCTS");
-        System.out.println("   Failed by system error: " + systemErrorCount);
-        System.out.println("   Failed by damaged component: " + damagedComponentCount);
-        System.out.println("   Failed by stock shortage: " + stockShortageCount);
-        
-        System.out.println("\n===== END OF REPORT =====\n");
+        // Failed products section
+        System.out.println("|                                                                         |");
+        System.out.println("| MANUFACTURING FAILURES                                                  |");
+        System.out.println("|    ---------------------                                                |");
+        System.out.printf("| 2. Products failed by system error: %-35d |\n", systemErrorCount);
+        System.out.printf("| 3. Products failed by damaged component: %-31d |\n", damagedComponentCount);
+        System.out.printf("| 4. Products failed by stock shortage: %-34d |\n", stockShortageCount);
+        System.out.println("|                                                                         |");
+        System.out.println(titleBorder);
     }
 } 

@@ -20,8 +20,7 @@ public class ManufacturingProcess {
         this.currentState = new WaitingForStockState();
         this.observers = new ArrayList<>();
         
-        // Notify observers of initial state
-        notifyStateChange(null, currentState);
+        // No longer notify observers at construction time
     }
     
     public void addObserver(ProcessObserver observer) {
@@ -33,12 +32,20 @@ public class ManufacturingProcess {
     }
     
     private void notifyStateChange(ProcessState oldState, ProcessState newState) {
+        if (observers.isEmpty()) {
+            return; // Skip notification if no observers are attached
+        }
+        
         for (ProcessObserver observer : observers) {
             observer.onStateChange(this, oldState, newState);
         }
     }
     
     private void notifyProcessCompleted() {
+        if (observers.isEmpty()) {
+            return; // Skip notification if no observers are attached
+        }
+        
         for (ProcessObserver observer : observers) {
             observer.onProcessCompleted(this);
         }
@@ -50,6 +57,16 @@ public class ManufacturingProcess {
         notifyStateChange(oldState, newState);
         
         if (newState.isTerminal()) {
+            // Ensure we have a finalOutcome before notifying completion
+            if (finalOutcome == null) {
+                if (newState instanceof FailedState) {
+                    // Default to system error if no specific reason was set
+                    recordResult(ManufacturingOutcome.FAILED_SYSTEM_ERROR);
+                } else if (newState instanceof CompletedState) {
+                    recordResult(ManufacturingOutcome.COMPLETED);
+                }
+            }
+            
             notifyProcessCompleted();
         }
     }

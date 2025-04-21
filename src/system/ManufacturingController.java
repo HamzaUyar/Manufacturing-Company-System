@@ -1,7 +1,6 @@
 package system;
 
 import component.Product;
-import observer.ConsoleLogger;
 import process.ManufacturingProcess;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -15,13 +14,11 @@ public class ManufacturingController {
     private final DataLoader dataLoader;
     private final InventoryManager inventoryManager;
     private final ReportGenerator reportGenerator;
-    private final ConsoleLogger consoleLogger;
     
     public ManufacturingController() {
         this.dataLoader = new DataLoader();
         this.inventoryManager = new InventoryManager();
         this.reportGenerator = new ReportGenerator();
-        this.consoleLogger = new ConsoleLogger();
     }
     
     /**
@@ -51,8 +48,6 @@ public class ManufacturingController {
     private List<ManufacturingProcess> processOrders(List<ManufacturingOrder> orders) {
         List<ManufacturingProcess> allResults = new ArrayList<>();
         
-        System.out.println("\n== MANUFACTURING PROCESS DETAILS ==\n");
-        
         // Iterate through each order in the exact order they appear in the CSV
         for (ManufacturingOrder order : orders) {
             Product product = order.getProduct();
@@ -74,12 +69,10 @@ public class ManufacturingController {
     }
     
     /**
-     * Creates a new manufacturing process with observer attached
+     * Creates a new manufacturing process
      */
     private ManufacturingProcess createManufacturingProcess(Product product) {
-        ManufacturingProcess process = new ManufacturingProcess(product, inventoryManager);
-        process.addObserver(consoleLogger);
-        return process;
+        return new ManufacturingProcess(product, inventoryManager);
     }
     
     /**
