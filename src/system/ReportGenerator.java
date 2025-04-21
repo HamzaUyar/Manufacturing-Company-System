@@ -40,7 +40,6 @@ public class ReportGenerator {
         }
         
         // Print a more visually appealing report
-        String border = "+---------------------------------------------------------------------------+";
         String titleBorder = "+===========================================================================+";
         
         System.out.println("\n" + titleBorder);
