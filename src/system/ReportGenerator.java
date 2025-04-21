@@ -3,10 +3,7 @@ package system;
 import component.Product;
 import process.ManufacturingOutcome;
 import process.ManufacturingProcess;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
 public class ReportGenerator {
     
     public void generateReport(List<ManufacturingProcess> completedProcesses) {
